@@ -149,7 +149,8 @@ Opens a copy of the element in a full-screen dialog. The original element keeps 
 
 - The diagram is scaled to fit the screen when the dialog opens
 - Drag to pan; the wheel always zooms inside the dialog
-- Zoom in, zoom out, reset, and close buttons; double-click resets
+- The same toolbar as the page (zoom in, zoom out, reset, pin, copy), with a close button in place of expand;
+  double-click resets
 - Close with the close button, `Escape`, or a click on the backdrop; focus returns to the expand button
 
 ```javascript

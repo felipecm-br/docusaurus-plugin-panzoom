@@ -202,8 +202,9 @@
   object-fit: contain;
 }
 
+/* Always show the dialog toolbar: it holds the close button. !important beats the inline opacity. */
 .panzoom-modal-content > .panzoom-toolbar {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 /* ── Scroll hint: shown when the plain wheel scrolls the page instead of zooming ── */

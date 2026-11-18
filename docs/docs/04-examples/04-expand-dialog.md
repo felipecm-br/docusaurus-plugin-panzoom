@@ -55,7 +55,7 @@ themeConfig: {
 - The element is scaled to fit the screen when the dialog opens
 - **Pan**: drag to pan
 - **Zoom**: the wheel always zooms inside the dialog
-- **Toolbar**: zoom in, zoom out, reset, and close buttons
+- **Toolbar**: the same buttons as on the page (zoom in, zoom out, reset, pin, copy), with close in place of expand
 - **Double-click**: resets zoom
 - **Close**: the close button, a click on the backdrop, or `Escape`. Focus returns to the expand button.
 

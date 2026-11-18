@@ -129,16 +129,61 @@ const getDiagramSource = (element: HTMLElement): string | null => {
   return null;
 };
 
+type ExpandToggle = { open: () => void; close: () => void; onClose?: () => void };
+
+/**
+ * What the toolbar offers besides zoom and pin
+ */
+type ToolbarExtras = {
+  /**
+   * Diagram source for the copy button. No copy button when null.
+   */
+  source: string | null;
+  /**
+   * In-page expand toggle (expand.mode = 'inline')
+   */
+  expandToggle?: ExpandToggle;
+  /**
+   * Opens the full-screen dialog (expand.mode = 'modal')
+   */
+  openModal?: (opener: HTMLButtonElement) => void;
+  /**
+   * Closes the full-screen dialog. Adds a close button, used by the dialog's own toolbar.
+   */
+  close?: () => void;
+};
+
+/**
+ * Zoom with the wheel, unless pinned, and respecting restrictZoomOutBeyondOrigin
+ */
+const zoomWithWheel = (instance: PanzoomObject, state: PanZoomState, event: WheelEvent) => {
+  // Leave the wheel to the page scroll while pinned
+  if (state.pinned) {
+    return;
+  }
+
+  if (restrictZoomOutBeyondOrigin) {
+    // Allow zooming in or zooming out only to the original size
+    if (event.deltaY < 0 || (event.deltaY > 0 && instance.getScale() > 1)) {
+      instance.zoomWithWheel(event);
+    }
+  } else {
+    instance.zoomWithWheel(event);
+  }
+};
+
 /**
  * Open a copy of the element in a full-screen dialog with its own panzoom instance.
  * The original element and its pan/zoom state are left untouched.
+ * The dialog has the same toolbar as the page (zoom, pin, copy), with a close button in place of expand.
  * The wheel always zooms inside the dialog. Escape, the close button, or a click on
  * the backdrop close it, and focus goes back to the button that opened it.
  *
  * @param element The element panzoom is applied to
+ * @param source The diagram source for the copy button, or null
  * @param opener The button that opened the dialog
  */
-const openModal = (element: HTMLElement, opener: HTMLElement) => {
+const openModal = (element: HTMLElement, source: string | null, opener: HTMLElement) => {
   const overlay = document.createElement('div');
   // No excludeClass here: panzoom ignores pointer events inside an excluded ancestor, which would block dragging
   overlay.className = 'panzoom-modal-overlay';
@@ -155,7 +200,7 @@ const openModal = (element: HTMLElement, opener: HTMLElement) => {
   clone.style.transform = '';
   clone.classList.add('panzoom-modal-stage');
   // The toolbar of the original element is not part of the element itself, but drop any stray one
-  clone.querySelectorAll('.panzoom-toolbar').forEach((toolbar) => toolbar.remove());
+  clone.querySelectorAll('.panzoom-toolbar, .panzoom-scroll-hint').forEach((child) => child.remove());
 
   content.appendChild(clone);
   overlay.appendChild(content);
@@ -165,33 +210,18 @@ const openModal = (element: HTMLElement, opener: HTMLElement) => {
   document.body.style.overflow = 'hidden';
 
   const instance = panzoom(clone, { excludeClass, ...panZoomConfig });
+  const state: PanZoomState = { pinned: false };
 
-  const zoomWithWheel = (event: WheelEvent) => {
-    instance.zoomWithWheel(event);
-  };
-  content.addEventListener('wheel', zoomWithWheel);
+  // No page to scroll behind the dialog, so the plain wheel zooms
+  content.addEventListener('wheel', (event) => zoomWithWheel(instance, state, event));
   if (enableDoubleClickResetZoom) {
-    clone.addEventListener('dblclick', () => instance.reset());
-  }
-
-  const toolbar = document.createElement('div');
-  toolbar.className = `panzoom-toolbar panzoom-toolbar-top-right ${excludeClass}`;
-  toolbar.addEventListener('dblclick', (e) => e.stopPropagation());
-  const addButton = (svg: string, title: string, action: () => void) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.innerHTML = svg;
-    button.title = title;
-    button.setAttribute('aria-label', title);
-    button.className = excludeClass;
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      action();
+    clone.addEventListener('dblclick', () => {
+      // Double-click selects a word while pinned
+      if (!state.pinned) {
+        instance.reset();
+      }
     });
-    toolbar.appendChild(button);
-    return button;
-  };
+  }
 
   const close = () => {
     document.removeEventListener('keydown', handleKeydown);
@@ -207,11 +237,8 @@ const openModal = (element: HTMLElement, opener: HTMLElement) => {
     }
   };
 
-  addButton(SvgZoomIn, 'Zoom in', () => instance.zoomIn());
-  addButton(SvgZoomOut, 'Zoom out', () => instance.zoomOut());
-  addButton(SvgZoomReset, 'Reset zoom', () => instance.reset());
-  const closeButton = addButton(SvgClose, 'Close', close);
-  content.appendChild(toolbar);
+  const setPinned = createPinController(clone, instance, state);
+  const toolbar = createToolbar(content, instance, position, state, setPinned, { source, close });
 
   // Close on a click on the backdrop. A drag that starts on the diagram and ends on the backdrop
   // also fires a click there, so only close when the press started on the backdrop too.
@@ -225,29 +252,29 @@ const openModal = (element: HTMLElement, opener: HTMLElement) => {
     }
   });
   document.addEventListener('keydown', handleKeydown);
-  closeButton.focus();
+  toolbar.querySelector<HTMLButtonElement>('.panzoom-close-button')?.focus();
 };
 
 /**
  * Creates a toolbar with zoom controls for a panzoom instance
  *
  * @param container The container element to append the toolbar to
- * @param element The element panzoom is applied to
  * @param instance The panzoom instance to control
  * @param position The position of the toolbar
  * @param state The state of the panzoom element
  * @param setPinned Function to suspend or resume pan/zoom
- * @param expandToggle Optional expand/collapse callbacks to wire into the toggle button
+ * @param extras Copy, expand and close buttons to add after zoom and pin
+ * @returns The toolbar element
  */
 const createToolbar = (
   container: HTMLElement,
-  element: HTMLElement,
   instance: PanzoomObject,
   position: PanZoomPluginToolbarPosition,
   state: PanZoomState,
   setPinned: (pinned: boolean) => void,
-  expandToggle?: { open: () => void; close: () => void; onClose?: () => void },
-) => {
+  extras: ToolbarExtras,
+): HTMLDivElement => {
+  const { source, expandToggle, openModal: onOpenModal, close } = extras;
   const toolbar = document.createElement('div');
   toolbar.className = `panzoom-toolbar panzoom-toolbar-${position} ${excludeClass}`;
 
@@ -263,6 +290,7 @@ const createToolbar = (
   // Helper function to create toolbar buttons
   const createButton = (svg: string, title: string, action: () => void): HTMLButtonElement => {
     const button = document.createElement('button');
+    button.type = 'button';
     button.innerHTML = svg;
     button.title = title;
     button.className = excludeClass;
@@ -317,8 +345,7 @@ const createToolbar = (
 
   const extraButtons: HTMLButtonElement[] = [];
 
-  // Copy the diagram source, when one can be read from the element
-  const source = copyEnabled ? getDiagramSource(element) : null;
+  // Copy the diagram source
   if (source) {
     const copyButton = createButton(SvgCopy, 'Copy source', () => {
       navigator.clipboard
@@ -335,23 +362,29 @@ const createToolbar = (
           console.warn('[docusaurus-plugin-panzoom] copy failed:', error);
         });
     });
-    copyButton.type = 'button';
     copyButton.setAttribute('aria-label', 'Copy diagram source');
     extraButtons.push(copyButton);
   }
 
   // Full-screen dialog with an independent copy of the element
-  if (expandEnabled && expandMode === 'modal') {
+  if (onOpenModal) {
     const expandButton = createButton(SvgZoomExpand, 'Expand (full screen)', () => {
-      openModal(element, expandButton);
+      onOpenModal(expandButton);
     });
-    expandButton.type = 'button';
     expandButton.setAttribute('aria-label', 'Expand diagram in full screen');
     extraButtons.push(expandButton);
   }
 
+  // Close button of the full-screen dialog
+  if (close) {
+    const closeButton = createButton(SvgClose, 'Close', close);
+    closeButton.classList.add('panzoom-close-button');
+    closeButton.setAttribute('aria-label', 'Close');
+    extraButtons.push(closeButton);
+  }
+
   // Expand / collapse toggle button — swaps icon and title between states
-  if (expandEnabled && expandToggle) {
+  if (expandToggle) {
     const expandBtn = document.createElement('button');
     expandBtn.innerHTML = SvgZoomExpand;
     expandBtn.title = 'Expand';
@@ -381,6 +414,7 @@ const createToolbar = (
 
   [...zoomButtons, pinButton, ...extraButtons].forEach((button) => toolbar.appendChild(button));
   container.appendChild(toolbar);
+  return toolbar;
 };
 
 /**
@@ -402,7 +436,7 @@ const createToolbar = (
  * @param container The wrapper element that holds the panzoom element
  * @param onClose Optional callback invoked after the expand mode is closed (e.g. to reset button icon)
  */
-const createExpandToggle = (container: HTMLElement): { open: () => void; close: () => void; onClose?: () => void } => {
+const createExpandToggle = (container: HTMLElement): ExpandToggle => {
   const getLayoutElements = () => {
     const sidebar = document.querySelector<HTMLElement>('aside.theme-doc-sidebar-container');
     // The right TOC column is a direct child of the .row that also contains the docItemCol
@@ -516,7 +550,7 @@ const createExpandToggle = (container: HTMLElement): { open: () => void; close: 
     }
   });
 
-  const result: { open: () => void; close: () => void; onClose?: () => void } = { open, close };
+  const result: ExpandToggle = { open, close };
   return result;
 };
 
@@ -571,21 +605,7 @@ const showScrollHint = (container: HTMLElement) => {
  * @param state The state of the panzoom element
  */
 const addEventListeners = (element: HTMLElement, instance: PanzoomObject, state: PanZoomState) => {
-  const handleZoomWithWheel = (event: WheelEvent) => {
-    // Leave the wheel to the page scroll while pinned
-    if (state.pinned) {
-      return;
-    }
-
-    if (restrictZoomOutBeyondOrigin) {
-      // Allow zooming in or zooming out only to the original size
-      if (event.deltaY < 0 || (event.deltaY > 0 && instance.getScale() > 1)) {
-        instance.zoomWithWheel(event);
-      }
-    } else {
-      instance.zoomWithWheel(event);
-    }
-  };
+  const handleZoomWithWheel = (event: WheelEvent) => zoomWithWheel(instance, state, event);
 
   // Handle the wheel zoom functionality if at least one of the options is enabled
   if (enableWheelZoom || enableWheelZoomWithShift || enableWheelZoomWithCtrl) {
@@ -665,10 +685,17 @@ const zoomElements = (selectors: string[]) => {
 
     // Add toolbar if enabled
     if (enabled) {
-      const setPinned = createPinController(element as HTMLElement, instance, state);
-      // Wire the expand toggle (if feature is on) into the toolbar
-      const expandToggle = expandEnabled && expandMode === 'inline' ? createExpandToggle(container) : undefined;
-      createToolbar(container, element as HTMLElement, instance, position, state, setPinned, expandToggle);
+      const htmlElement = element as HTMLElement;
+      const setPinned = createPinController(htmlElement, instance, state);
+      // Read the source now: the dialog's copy has no React props to read it from
+      const source = copyEnabled ? getDiagramSource(htmlElement) : null;
+      createToolbar(container, instance, position, state, setPinned, {
+        source,
+        // Wire the expand toggle (if feature is on) into the toolbar
+        expandToggle: expandEnabled && expandMode === 'inline' ? createExpandToggle(container) : undefined,
+        openModal:
+          expandEnabled && expandMode === 'modal' ? (opener) => openModal(htmlElement, source, opener) : undefined,
+      });
     }
   });
 };
