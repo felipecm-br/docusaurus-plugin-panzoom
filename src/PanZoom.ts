@@ -140,7 +140,8 @@ const getDiagramSource = (element: HTMLElement): string | null => {
  */
 const openModal = (element: HTMLElement, opener: HTMLElement) => {
   const overlay = document.createElement('div');
-  overlay.className = `panzoom-modal-overlay ${excludeClass}`;
+  // No excludeClass here: panzoom ignores pointer events inside an excluded ancestor, which would block dragging
+  overlay.className = 'panzoom-modal-overlay';
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', 'Expanded diagram');
@@ -149,7 +150,7 @@ const openModal = (element: HTMLElement, opener: HTMLElement) => {
   content.className = 'panzoom-modal-content';
 
   const clone = element.cloneNode(true) as HTMLElement;
-  clone.removeAttribute('data-panzoom');
+  // Keep data-panzoom on the copy so a route update while the dialog is open does not set it up again
   clone.removeAttribute('id');
   clone.style.transform = '';
   clone.classList.add('panzoom-modal-stage');
@@ -212,8 +213,14 @@ const openModal = (element: HTMLElement, opener: HTMLElement) => {
   const closeButton = addButton(SvgClose, 'Close', close);
   content.appendChild(toolbar);
 
+  // Close on a click on the backdrop. A drag that starts on the diagram and ends on the backdrop
+  // also fires a click there, so only close when the press started on the backdrop too.
+  let pressedOnBackdrop = false;
+  overlay.addEventListener('pointerdown', (event) => {
+    pressedOnBackdrop = event.target === overlay;
+  });
   overlay.addEventListener('click', (event) => {
-    if (event.target === overlay) {
+    if (pressedOnBackdrop && event.target === overlay) {
       close();
     }
   });
