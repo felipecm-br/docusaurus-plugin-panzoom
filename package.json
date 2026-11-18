@@ -103,7 +103,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fcmiranda/docusaurus-plugin-panzoom.git"
+    "url": "git+https://github.com/felipecm-br/docusaurus-plugin-panzoom.git"
+  },
+  "homepage": "https://felipecm-br.github.io/docusaurus-plugin-panzoom/",
+  "bugs": {
+    "url": "https://github.com/felipecm-br/docusaurus-plugin-panzoom/issues"
   },
   "sideEffects": false,
   "lint-staged": {
