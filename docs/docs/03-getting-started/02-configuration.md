@@ -42,12 +42,12 @@ module.exports = {
       },
 
       /**
-       * Whether to enable zooming with the mouse wheel.
-       * If true, the user can zoom in and out using the mouse wheel.
+       * Whether to enable zooming with the plain mouse wheel.
+       * If true, the wheel zooms the element instead of scrolling the page when the pointer is over it.
        *
-       * default: true
+       * default: false (the plain wheel scrolls the page; see `enableWheelZoomWithCtrl`)
        */
-      enableWheelZoom: true,
+      enableWheelZoom: false,
 
       /**
        * Whether to enable zooming with the mouse wheel while holding the shift key.
@@ -66,12 +66,12 @@ module.exports = {
        * Trackpad pinch gestures also report the Ctrl key, so they zoom too.
        *
        * Like `enableWheelZoomWithShift`, this option is independent of `enableWheelZoom`.
-       * Set `enableWheelZoom: false` and `enableWheelZoomWithCtrl: true` so that the plain wheel
-       * scrolls the page and Ctrl + wheel zooms the element.
+       * With the defaults (`enableWheelZoom: false`), the plain wheel scrolls the page and shows a short
+       * "Ctrl + scroll to zoom" hint over the element.
        *
-       * default: false
+       * default: true
        */
-      enableWheelZoomWithCtrl: false,
+      enableWheelZoomWithCtrl: true,
 
       /**
        * Whether to enable double-click to reset zoom.

@@ -3,7 +3,9 @@
 For elements with pan and zoom functionality enabled, users can:
 
 - **Pan**: Click and drag the element to move the view area
-- **Zoom**: Use the mouse wheel (and/or shift + mouse wheel) to zoom in and out of the element
+- **Zoom**: Hold Ctrl (Cmd on macOS) and use the mouse wheel, or pinch on a trackpad. The plain wheel keeps scrolling
+  the page and shows a short "Ctrl + scroll to zoom" hint over the element. Set `enableWheelZoom: true` to zoom with the
+  plain wheel, or `enableWheelZoomWithShift: true` to zoom with Shift + wheel
 - **Reset**: Double-click the element to reset to the original view state
 
 If the toolbar is enabled, users can also use the toolbar buttons to zoom in, zoom out, and reset the view. See the

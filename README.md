@@ -48,9 +48,9 @@ themeConfig: {
     // Default: 'panzoom-exclude'
     excludeClass: 'panzoom-exclude',
 
-    // Whether to enable zooming with the mouse wheel.
-    // Default: true
-    enableWheelZoom: true,
+    // Whether the plain mouse wheel zooms the element instead of scrolling the page.
+    // Default: false
+    enableWheelZoom: false,
 
     // Whether to enable zooming with the mouse wheel while holding the shift key.
     // Works independently of enableWheelZoom.
@@ -58,10 +58,10 @@ themeConfig: {
     enableWheelZoomWithShift: false,
 
     // Whether to enable zooming with the mouse wheel while holding Ctrl (Cmd on macOS).
-    // Trackpad pinch also zooms. Works independently of enableWheelZoom: set
-    // enableWheelZoom: false to let the plain wheel scroll the page.
-    // Default: false
-    enableWheelZoomWithCtrl: false,
+    // Trackpad pinch also zooms. Works independently of enableWheelZoom. While the plain
+    // wheel scrolls the page, a short "Ctrl + scroll to zoom" hint appears over the element.
+    // Default: true
+    enableWheelZoomWithCtrl: true,
 
     // Whether to enable double-click to reset zoom.
     // Default: true
@@ -189,7 +189,8 @@ themeConfig: {
 > - **Scroll back on collapse**: the page scrolls back to the diagram when expand mode is exited.
 > - **Full-screen dialog**: `expand.mode: 'modal'` opens the diagram in a dialog instead.
 > - **Copy Mermaid source**: `copy.enabled` adds a button that copies the diagram source.
-> - **Ctrl + wheel zoom**: `enableWheelZoomWithCtrl` zooms only while Ctrl (Cmd) is held.
+> - **Ctrl + wheel zoom by default**: scrolling the page over a diagram no longer zooms it. Zoom with Ctrl (Cmd) +
+>   wheel or a trackpad pinch; a hint says so when you scroll. Set `enableWheelZoom: true` for the old behavior.
 >
 > If you don't need these features, consider using
 > [@r74tech/docusaurus-plugin-panzoom](https://www.npmjs.com/package/@r74tech/docusaurus-plugin-panzoom) directly.

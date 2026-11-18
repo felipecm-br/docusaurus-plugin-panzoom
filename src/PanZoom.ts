@@ -21,9 +21,9 @@ const {
   timeout = 1000,
   excludeClass = 'panzoom-exclude',
   toolbar: { enabled = false, position = PanZoomPluginToolbarPosition.TopRight, opacity = 0 } = {},
-  enableWheelZoom = true,
+  enableWheelZoom = false,
   enableWheelZoomWithShift = false,
-  enableWheelZoomWithCtrl = false,
+  enableWheelZoomWithCtrl = true,
   enableDoubleClickResetZoom = true,
   restrictZoomOutBeyondOrigin = false,
   expand: { enabled: expandEnabled = false, mode: expandMode = 'inline' } = {},
@@ -513,6 +513,48 @@ const createExpandToggle = (container: HTMLElement): { open: () => void; close: 
   return result;
 };
 
+// Text of the hint shown when the plain wheel scrolls the page instead of zooming
+const SCROLL_HINT = enableWheelZoomWithCtrl
+  ? 'Ctrl + scroll to zoom (⌘ on Mac)'
+  : enableWheelZoomWithShift
+    ? 'Shift + scroll to zoom'
+    : '';
+
+const scrollHintTimers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
+
+/**
+ * Briefly show which key zooms, centered on the visible part of the container.
+ * The hint ignores the pointer, so it never blocks the page scroll.
+ *
+ * @param container The container the wheel event happened on
+ */
+const showScrollHint = (container: HTMLElement) => {
+  if (!SCROLL_HINT) {
+    return;
+  }
+
+  let hint = container.querySelector<HTMLElement>(':scope > .panzoom-scroll-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = `panzoom-scroll-hint ${excludeClass}`;
+    hint.setAttribute('aria-hidden', 'true');
+    hint.textContent = SCROLL_HINT;
+    container.appendChild(hint);
+  }
+  // Center the hint on the visible part of the container, so tall diagrams still show it
+  const rect = container.getBoundingClientRect();
+  const visibleTop = Math.max(rect.top, 0);
+  const visibleBottom = Math.min(rect.bottom, window.innerHeight);
+  hint.style.top = `${(visibleTop + visibleBottom) / 2 - rect.top}px`;
+  hint.classList.add('panzoom-scroll-hint-visible');
+
+  clearTimeout(scrollHintTimers.get(container));
+  scrollHintTimers.set(
+    container,
+    setTimeout(() => hint.classList.remove('panzoom-scroll-hint-visible'), 900),
+  );
+};
+
 /**
  * Attach event listeners to the element where panzoom is applied.
  * The listeners to add are based on the configuration options provided.
@@ -556,6 +598,12 @@ const addEventListeners = (element: HTMLElement, instance: PanzoomObject, state:
       // Handle regular zoom
       if (enableWheelZoom && !event.shiftKey) {
         handleZoomWithWheel(event);
+        return;
+      }
+
+      // The wheel scrolls the page: tell the user which key zooms
+      if (!state.pinned && event.deltaY !== 0) {
+        showScrollHint(element);
       }
     });
   }
