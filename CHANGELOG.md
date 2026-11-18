@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/felipecm-br/docusaurus-plugin-panzoom/compare/v2.0.0...v2.0.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* point package repository at felipecm-br/docusaurus-plugin-panzoom ([29b86f5](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/29b86f5551c4a75c750443921e772d83f94a5085))
+
 # [2.0.0](https://github.com/felipecm-br/docusaurus-plugin-panzoom/compare/v1.0.2...v2.0.0) (2026-11-18)
 
 
