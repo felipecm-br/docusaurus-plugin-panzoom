@@ -1,3 +1,31 @@
+# [2.5.0](https://github.com/r74tech/docusaurus-plugin-panzoom/compare/v2.4.5...v2.5.0) (2026-10-02)
+
+
+### Features
+
+* add a pin button to the toolbar to allow text selection ([#45](https://github.com/r74tech/docusaurus-plugin-panzoom/issues/45)) ([ab1f18f](https://github.com/r74tech/docusaurus-plugin-panzoom/commit/ab1f18f3882ba3534a4794f1e97abe8e5b071a7e))
+
+## [2.4.5](https://github.com/r74tech/docusaurus-plugin-panzoom/compare/v2.4.4...v2.4.5) (2026-09-10)
+
+
+### Bug Fixes
+
+* instantiate panzoom after element is wrapped in container ([#39](https://github.com/r74tech/docusaurus-plugin-panzoom/issues/39)) ([012fda2](https://github.com/r74tech/docusaurus-plugin-panzoom/commit/012fda2f82879fb0df284163ff673d8542e1ee66))
+
+## [2.4.4](https://github.com/r74tech/docusaurus-plugin-panzoom/compare/v2.4.3...v2.4.4) (2026-09-10)
+
+
+### Bug Fixes
+
+* **ci:** 公開時にOIDC対応のnpmを使用 ([#38](https://github.com/r74tech/docusaurus-plugin-panzoom/issues/38)) ([e289c30](https://github.com/r74tech/docusaurus-plugin-panzoom/commit/e289c301822c45e0777e66760008c466d75dfab0))
+
+## [2.4.3](https://github.com/r74tech/docusaurus-plugin-panzoom/compare/v2.4.2...v2.4.3) (2026-09-10)
+
+
+### Bug Fixes
+
+* **docs:** ドキュメントビルドのwebpack互換性を修正 ([2eb13b9](https://github.com/r74tech/docusaurus-plugin-panzoom/commit/2eb13b994e2d4db3a4e48966f6f25c166349d2ae))
+
 ## [2.4.2](https://github.com/r74tech/docusaurus-plugin-panzoom/compare/v2.4.1...v2.4.2) (2026-02-08)
 
 

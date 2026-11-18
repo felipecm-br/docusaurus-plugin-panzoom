@@ -13,7 +13,7 @@ const config: Config = {
   url: 'https://r74tech.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/docusaurus-plugin-panzoom/',
+  baseUrl: process.env.DOCS_BASE_URL || '/docusaurus-plugin-panzoom/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
