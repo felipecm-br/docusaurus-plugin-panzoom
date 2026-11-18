@@ -7,6 +7,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      publish_tag:
+        description: "Publish an existing release tag (e.g. v2.0.0) to npm, for a release whose npm step did not run"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -52,7 +57,7 @@ jobs:
   release:
     name: Prepare Release
     needs: check
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && inputs.publish_tag == ''
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -97,10 +102,43 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  pack-tag:
+    name: Pack existing release tag
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: refs/tags/${{ inputs.publish_tag }}
+          persist-credentials: false
+      - name: Setup pnpm and Node.js
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
+        with:
+          runtime: node@lts
+          cache: false
+          install: false
+      - name: Build and pack
+        env:
+          PUBLISH_TAG: ${{ inputs.publish_tag }}
+        run: |
+          test "v$(jq -r .version package.json)" = "$PUBLISH_TAG"
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build
+          mkdir -p release-artifacts
+          npm pack --ignore-scripts --pack-destination release-artifacts
+      - name: Upload release tarball
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-package
+          path: release-artifacts/*.tgz
+          if-no-files-found: error
+          retention-days: 30
+
   publish:
     name: Publish to npm
-    needs: release
-    if: needs.release.outputs.released == 'true'
+    needs: [release, pack-tag]
+    if: always() && (needs.release.outputs.released == 'true' || needs.pack-tag.result == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: read
