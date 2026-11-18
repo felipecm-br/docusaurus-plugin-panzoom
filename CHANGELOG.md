@@ -1,3 +1,38 @@
+# [2.0.0](https://github.com/felipecm-br/docusaurus-plugin-panzoom/compare/v1.0.2...v2.0.0) (2026-11-18)
+
+
+* feat!: touch-friendly page scrolling, keyboard and screen reader support, theme-aware toolbar ([0847e77](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/0847e77809848c9177bff022d5521abe8ffeca6a))
+* feat!: zoom with Ctrl + wheel by default and show a scroll hint ([b92ba88](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/b92ba880b2b6c11968e8591c7fdcbb480bcc403f))
+
+
+### Bug Fixes
+
+* allow dragging the diagram in the full-screen dialog ([e3806f2](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/e3806f2a60debac096e8c03772aca62f0d853f7c))
+* **ci:** 公開時にOIDC対応のnpmを使用 ([#38](https://github.com/felipecm-br/docusaurus-plugin-panzoom/issues/38)) ([e289c30](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/e289c301822c45e0777e66760008c466d75dfab0))
+* **docs:** ドキュメントビルドのwebpack互換性を修正 ([2eb13b9](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/2eb13b994e2d4db3a4e48966f6f25c166349d2ae))
+* instantiate panzoom after element is wrapped in container ([#39](https://github.com/felipecm-br/docusaurus-plugin-panzoom/issues/39)) ([012fda2](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/012fda2f82879fb0df284163ff673d8542e1ee66))
+
+
+### Features
+
+* add a pin button to the toolbar to allow text selection ([#45](https://github.com/felipecm-br/docusaurus-plugin-panzoom/issues/45)) ([ab1f18f](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/ab1f18f3882ba3534a4794f1e97abe8e5b071a7e))
+* add full-screen dialog expand mode, Mermaid source copy, and Ctrl + wheel zoom ([612ce80](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/612ce8096048195bf253083088559e992281d651))
+* give the full-screen dialog the same toolbar as the page ([a541fb7](https://github.com/felipecm-br/docusaurus-plugin-panzoom/commit/a541fb707de9605716b1630e2537ca953da45f8e))
+
+
+### BREAKING CHANGES
+
+* on touch screens a one-finger swipe over an element now
+scrolls the page instead of panning it. Set touchAction: 'none' to restore
+one-finger panning.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+* enableWheelZoom now defaults to false and
+enableWheelZoomWithCtrl to true. Set enableWheelZoom: true to restore
+zooming with the plain wheel.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 # [2.5.0](https://github.com/r74tech/docusaurus-plugin-panzoom/compare/v2.4.5...v2.5.0) (2026-10-02)
 
 
