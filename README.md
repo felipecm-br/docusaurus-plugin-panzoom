@@ -113,6 +113,28 @@ themeConfig: {
 }
 ```
 
+## Upgrading from 1.x
+
+Version 2.0 stops page scrolling from zooming or moving diagrams:
+
+- The plain mouse wheel scrolls the page and shows a short "Ctrl + scroll to zoom" hint. Zoom with Ctrl (Cmd) + wheel
+  or a trackpad pinch.
+- On touch screens, one finger scrolls the page and two fingers pan and pinch-zoom.
+
+To keep the 1.x behavior, set `enableWheelZoom: true` and `touchAction: 'none'` in `themeConfig.zoom`.
+
+## Interactions
+
+- **Mouse**: drag to pan, Ctrl (Cmd) + wheel to zoom, double-click to reset.
+- **Touch**: one finger scrolls the page, two fingers pan and pinch-zoom. The toolbar is always visible.
+- **Keyboard**: the toolbar shows while a button has focus. In the full-screen dialog, `+` / `-` zoom, `0` resets, the
+  arrow keys pan, and `Escape` closes it; focus stays inside the dialog.
+- **Accessibility**: every button has an accessible name, copy results are announced, colors follow the light and dark
+  theme, and `prefers-reduced-motion` turns off animations.
+
+Any [@panzoom/panzoom](https://github.com/timmywil/panzoom) option goes directly in `themeConfig.zoom`, for example
+`cursor: 'pointer'` or `touchAction: 'none'`.
+
 ## Expand Feature
 
 When `expand.enabled` is set to `true`, an expand button appears in the toolbar. `expand.mode` picks what it does.
@@ -190,6 +212,8 @@ themeConfig: {
 > - **Scroll back on collapse**: the page scrolls back to the diagram when expand mode is exited.
 > - **Full-screen dialog**: `expand.mode: 'modal'` opens the diagram in a dialog instead.
 > - **Copy Mermaid source**: `copy.enabled` adds a button that copies the diagram source.
+> - **Touch-friendly page scrolling**: one finger scrolls the page over a diagram, two fingers pan and zoom.
+> - **Keyboard, screen reader, dark theme and reduced motion support** for the toolbar and the full-screen dialog.
 > - **Ctrl + wheel zoom by default**: scrolling the page over a diagram no longer zooms it. Zoom with Ctrl (Cmd) +
 >   wheel or a trackpad pinch; a hint says so when you scroll. Set `enableWheelZoom: true` for the old behavior.
 >

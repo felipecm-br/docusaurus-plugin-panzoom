@@ -10,14 +10,14 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://r74tech.github.io',
+  url: 'https://felipecm-br.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: process.env.DOCS_BASE_URL || '/docusaurus-plugin-panzoom/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'r74tech', // Usually your GitHub org/user name.
+  organizationName: 'felipecm-br', // Usually your GitHub org/user name.
   projectName: 'docusaurus-plugin-panzoom', // Usually your repo name.
 
   onBrokenLinks: 'throw',
@@ -39,7 +39,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/r74tech/docusaurus-plugin-panzoom/tree/main/docs/',
+          editUrl: 'https://github.com/felipecm-br/docusaurus-plugin-panzoom/tree/main/docs/',
           routeBasePath: '/docs',
         },
         blog: false, // Disable the blog feature
@@ -50,7 +50,7 @@ const config: Config = {
     ],
   ],
 
-  plugins: ['@r74tech/docusaurus-plugin-panzoom'],
+  plugins: ['@fdevbr/docusaurus-plugin-panzoom'],
 
   themeConfig: {
     // Replace with your project's social card
@@ -70,7 +70,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/r74tech/docusaurus-plugin-panzoom',
+          href: 'https://github.com/felipecm-br/docusaurus-plugin-panzoom',
           label: 'GitHub',
           position: 'right',
         },
@@ -85,11 +85,11 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/r74tech/docusaurus-plugin-panzoom',
+              href: 'https://github.com/felipecm-br/docusaurus-plugin-panzoom',
             },
             {
               label: 'npm',
-              href: 'https://www.npmjs.com/package/@r74tech/docusaurus-plugin-panzoom',
+              href: 'https://www.npmjs.com/package/@fdevbr/docusaurus-plugin-panzoom',
             },
           ],
         },
@@ -98,16 +98,16 @@ const config: Config = {
           items: [
             {
               label: 'Contributing',
-              href: 'https://github.com/r74tech/docusaurus-plugin-panzoom/blob/main/CONTRIBUTING.md',
+              href: 'https://github.com/felipecm-br/docusaurus-plugin-panzoom/blob/main/CONTRIBUTING.md',
             },
             {
               label: 'Changelog',
-              href: 'https://github.com/r74tech/docusaurus-plugin-panzoom/blob/main/CHANGELOG.md',
+              href: 'https://github.com/felipecm-br/docusaurus-plugin-panzoom/blob/main/CHANGELOG.md',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} r74tech. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} docusaurus-plugin-panzoom contributors. Built with Docusaurus.`,
     },
 
     prism: {

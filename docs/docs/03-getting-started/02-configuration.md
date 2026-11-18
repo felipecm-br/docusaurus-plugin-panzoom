@@ -111,14 +111,19 @@ module.exports = {
     // ...
     zoom: {
       // ...
-      panzoomOptions: {
-        cursor: 'pointer', // Pointer cursor instead of the default move cursor
-      },
+      // Options of @panzoom/panzoom go directly in `zoom`
+      cursor: 'pointer', // Pointer cursor instead of the default move cursor
     },
   },
   // ...
 };
 ```
+
+### Touch behavior
+
+The plugin sets the `touchAction` option of `@panzoom/panzoom` to `'pan-x pan-y'` on the page: one finger scrolls the
+page and two fingers pan and pinch-zoom the element. Set `touchAction: 'none'` to pan with one finger instead. The
+full-screen dialog always uses `'none'`.
 
 ## Toolbar Configuration
 

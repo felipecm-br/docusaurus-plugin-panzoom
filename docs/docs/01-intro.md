@@ -17,20 +17,23 @@ This plugin implements the excellent [@panzoom/panzoom](https://www.npmjs.com/pa
 - Works with [Mermaid](https://mermaid-js.github.io/mermaid/) generated diagrams
 - Customizable selectors to target specific elements
 - Option to wrap elements to contain them within their original container
-- Option to use mouse wheel or pinch to zoom
-- Option to use shift + mouse wheel or pinch to zoom
+- Scrolling the page never zooms by accident: zoom with Ctrl (Cmd) + wheel or a trackpad pinch, and a hint says so
+- On touch screens, one finger scrolls the page and two fingers pan and pinch-zoom
+- Options to zoom with the plain wheel or with Shift + wheel instead
 - Option to use double-click to reset the zoom
 - Option to restrict zooming out beyond the original size of the element
-- Toolbar for zooming in and out and resetting the view
+- Toolbar for zooming in and out, resetting the view, and pinning the view to select text
+- Expand an element in the page or in a full-screen dialog with its own pan and zoom
+- Copy the source of Mermaid diagrams
+- Keyboard and screen reader support, light and dark themes, and reduced motion
 
 ## Note
 
-This package is a fork of [act-org/docusaurus-plugin-panzoom](https://github.com/act-org/docusaurus-plugin-panzoom)
-under the MIT license. It was forked because the original package was not being actively maintained.
-
-If the original package is updated and maintained again, we recommend migrating back to the original package. This fork
-will continue to be maintained until then.
+This package (`@fdevbr/docusaurus-plugin-panzoom`) is a fork of
+[r74tech/docusaurus-plugin-panzoom](https://github.com/r74tech/docusaurus-plugin-panzoom), itself a fork of
+[act-org/docusaurus-plugin-panzoom](https://github.com/act-org/docusaurus-plugin-panzoom), under the MIT license. It
+adds the expand, copy, touch, keyboard and theming features above and keeps merging upstream fixes.
 
 ## License
 
-MIT, see [LICENSE](https://github.com/r74tech/docusaurus-plugin-panzoom/blob/main/LICENSE) for more details.
+MIT, see [LICENSE](https://github.com/felipecm-br/docusaurus-plugin-panzoom/blob/main/LICENSE) for more details.
