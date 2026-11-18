@@ -126,5 +126,5 @@ jobs:
           packages=(*.tgz)
           test "${#packages[@]}" -eq 1
           test -f "${packages[0]}"
-          tar -xOf "${packages[0]}" package/package.json | jq -e '.name == "@r74tech/docusaurus-plugin-panzoom"'
+          tar -xOf "${packages[0]}" package/package.json | jq -e '.name == "@fdevbr/docusaurus-plugin-panzoom"'
           npm publish "./${packages[0]}" --ignore-scripts --access public --tag latest --registry https://registry.npmjs.org

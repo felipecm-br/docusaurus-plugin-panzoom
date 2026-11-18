@@ -1,6 +1,6 @@
 {
   "name": "@fdevbr/docusaurus-plugin-panzoom",
-  "version": "1.1.0",
+  "version": "1.0.2",
   "packageManager": "pnpm@11.24.0",
   "description": "A plugin to enable the panzoom component on SVG and other elements",
   "main": "dist/index.js",
@@ -76,14 +76,13 @@
         {
           "assets": [
             "CHANGELOG.md",
-            "package.json",
-            "package-lock.json"
+            "package.json"
           ],
           "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
         }
       ]
     ],
-    "repositoryUrl": "git@github.com:fdevbr/docusaurus-plugin-panzoom.git",
+    "repositoryUrl": "https://github.com/felipecm-br/docusaurus-plugin-panzoom.git",
     "branches": [
       {
         "name": "main",
