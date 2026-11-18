@@ -155,3 +155,53 @@
   border-color: #888;
   background-color: #e6e6e6;
 }
+
+/* ── Expand: full-screen dialog (expand.mode = 'modal') ─────────────────── */
+
+.panzoom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.panzoom-modal-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--ifm-background-surface-color, #fff);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* The copied element fills the dialog; its SVG or image scales to fit before zooming */
+.panzoom-modal-stage {
+  width: 100%;
+  height: 100%;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panzoom-modal-stage > svg,
+.panzoom-modal-stage > img,
+.panzoom-modal-stage svg:only-child {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: 100% !important;
+  object-fit: contain;
+}
+
+.panzoom-modal-content > .panzoom-toolbar {
+  opacity: 1;
+}

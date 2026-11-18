@@ -130,6 +130,10 @@ const config: Config = {
       },
       expand: {
         enabled: true,
+        mode: 'modal',
+      },
+      copy: {
+        enabled: true,
       },
     },
   } satisfies Preset.ThemeConfig,

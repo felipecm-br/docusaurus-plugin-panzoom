@@ -89,6 +89,18 @@ export type PanZoomPluginOptions = PanzoomOptions & {
   enableWheelZoomWithShift?: boolean;
 
   /**
+   * Whether to enable zooming with the mouse wheel while holding the Ctrl key (Cmd on macOS).
+   * Trackpad pinch gestures also report the Ctrl key, so they zoom too.
+   *
+   * Like `enableWheelZoomWithShift`, this option is independent of `enableWheelZoom`.
+   * Set `enableWheelZoom: false` and `enableWheelZoomWithCtrl: true` so that the plain wheel
+   * scrolls the page and Ctrl + wheel zooms the element.
+   *
+   * default: false
+   */
+  enableWheelZoomWithCtrl?: boolean;
+
+  /**
    * Whether to enable double-click to reset zoom.
    * If true, double-clicking on the panzoom element will reset the zoom level.
    *
@@ -105,8 +117,6 @@ export type PanZoomPluginOptions = PanzoomOptions & {
 
   /**
    * Expand feature options. When enabled, an expand button is added to the toolbar.
-   * Clicking it hides the sidebar and TOC column and expands the main content area
-   * to near-full-width so the original panzoom element fills the available space.
    */
   expand?: {
     /**
@@ -115,5 +125,34 @@ export type PanZoomPluginOptions = PanzoomOptions & {
      * default: false
      */
     enabled?: boolean;
+
+    /**
+     * How the element is expanded.
+     *
+     * - `inline`: hides the navbar, sidebar, TOC, footer and the rest of the page content so the
+     *   original element fills the page. The element keeps its pan and zoom state.
+     * - `modal`: opens a copy of the element in a full-screen dialog with its own pan and zoom.
+     *   The wheel always zooms inside the dialog. Close it with the close button, Escape, or a
+     *   click on the backdrop.
+     *
+     * default: 'inline'
+     */
+    mode?: PanZoomPluginExpandMode;
+  };
+
+  /**
+   * Copy feature options. When enabled, a copy button is added to the toolbar of every
+   * Mermaid diagram rendered by `@docusaurus/theme-mermaid`. It copies the diagram source.
+   * Elements without a readable source (images, draw.io, raw mermaid.js output) get no button.
+   */
+  copy?: {
+    /**
+     * Whether to show the copy button in the toolbar.
+     *
+     * default: false
+     */
+    enabled?: boolean;
   };
 };
+
+export type PanZoomPluginExpandMode = 'inline' | 'modal';

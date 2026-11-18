@@ -57,6 +57,12 @@ themeConfig: {
     // Default: false
     enableWheelZoomWithShift: false,
 
+    // Whether to enable zooming with the mouse wheel while holding Ctrl (Cmd on macOS).
+    // Trackpad pinch also zooms. Works independently of enableWheelZoom: set
+    // enableWheelZoom: false to let the plain wheel scroll the page.
+    // Default: false
+    enableWheelZoomWithCtrl: false,
+
     // Whether to enable double-click to reset zoom.
     // Default: true
     enableDoubleClickResetZoom: true,
@@ -80,11 +86,23 @@ themeConfig: {
       opacity: 0,
     },
 
-    // Expand feature: adds an expand button to the toolbar that hides the sidebar, TOC,
-    // navbar, and site footer, expanding the diagram to near-full-width.
+    // Expand feature: adds an expand button to the toolbar.
     // Requires toolbar.enabled: true
     expand: {
       // Whether to show the expand button in the toolbar.
+      // Default: false
+      enabled: false,
+
+      // 'inline': hides the sidebar, TOC, navbar, and site footer so the diagram fills the page.
+      // 'modal': opens a copy of the diagram in a full-screen dialog with its own pan and zoom.
+      // Default: 'inline'
+      mode: 'inline',
+    },
+
+    // Copy feature: adds a button that copies the Mermaid source of diagrams rendered by
+    // @docusaurus/theme-mermaid. Other elements get no button.
+    // Requires toolbar.enabled: true
+    copy: {
       // Default: false
       enabled: false,
     },
@@ -97,8 +115,11 @@ themeConfig: {
 
 ## Expand Feature
 
-This fork adds an **in-page expand mode**: when `expand.enabled` is set to `true`, an expand button appears in the
-toolbar. Clicking it (or pressing `Escape` to exit) triggers the following behaviour:
+When `expand.enabled` is set to `true`, an expand button appears in the toolbar. `expand.mode` picks what it does.
+
+### In-page mode (`mode: 'inline'`, default)
+
+Clicking the button (or pressing `Escape` to exit) triggers the following behaviour:
 
 **On expand:**
 
@@ -122,6 +143,39 @@ themeConfig: {
 }
 ```
 
+### Full-screen dialog (`mode: 'modal'`)
+
+Opens a copy of the element in a full-screen dialog. The original element keeps its pan and zoom state.
+
+- The diagram is scaled to fit the screen when the dialog opens
+- Drag to pan; the wheel always zooms inside the dialog
+- Zoom in, zoom out, reset, and close buttons; double-click resets
+- Close with the close button, `Escape`, or a click on the backdrop; focus returns to the expand button
+
+```javascript
+themeConfig: {
+  zoom: {
+    toolbar: { enabled: true },
+    expand: { enabled: true, mode: 'modal' },
+  }
+}
+```
+
+## Copy Feature
+
+When `copy.enabled` is set to `true`, Mermaid diagrams rendered by `@docusaurus/theme-mermaid` get a copy button that
+puts the diagram source on the clipboard. The icon turns into a check mark for a moment after copying. Images, draw.io
+diagrams, and other elements have no source, so they get no button.
+
+```javascript
+themeConfig: {
+  zoom: {
+    toolbar: { enabled: true },
+    copy: { enabled: true },
+  }
+}
+```
+
 > [!NOTE] This package is a fork of
 > [@r74tech/docusaurus-plugin-panzoom](https://github.com/r74tech/docusaurus-plugin-panzoom), which itself is a fork of
 > [act-org/docusaurus-plugin-panzoom](https://github.com/act-org/docusaurus-plugin-panzoom), under the MIT license.
@@ -133,8 +187,11 @@ themeConfig: {
 > - **Fixed toolbar in expand mode**: toolbar buttons stay pinned to the viewport corner while panning.
 > - **Scroll to top on expand**: the page scrolls to the top when expand mode is activated.
 > - **Scroll back on collapse**: the page scrolls back to the diagram when expand mode is exited.
+> - **Full-screen dialog**: `expand.mode: 'modal'` opens the diagram in a dialog instead.
+> - **Copy Mermaid source**: `copy.enabled` adds a button that copies the diagram source.
+> - **Ctrl + wheel zoom**: `enableWheelZoomWithCtrl` zooms only while Ctrl (Cmd) is held.
 >
-> If you don't need the expand feature, consider using
+> If you don't need these features, consider using
 > [@r74tech/docusaurus-plugin-panzoom](https://www.npmjs.com/package/@r74tech/docusaurus-plugin-panzoom) directly.
 
 ## License

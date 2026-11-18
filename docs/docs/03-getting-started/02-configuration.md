@@ -62,6 +62,18 @@ module.exports = {
       enableWheelZoomWithShift: false,
 
       /**
+       * Whether to enable zooming with the mouse wheel while holding the Ctrl key (Cmd on macOS).
+       * Trackpad pinch gestures also report the Ctrl key, so they zoom too.
+       *
+       * Like `enableWheelZoomWithShift`, this option is independent of `enableWheelZoom`.
+       * Set `enableWheelZoom: false` and `enableWheelZoomWithCtrl: true` so that the plain wheel
+       * scrolls the page and Ctrl + wheel zooms the element.
+       *
+       * default: false
+       */
+      enableWheelZoomWithCtrl: false,
+
+      /**
        * Whether to enable double-click to reset zoom.
        * If true, double-clicking on the panzoom element will reset the zoom level.
        *
