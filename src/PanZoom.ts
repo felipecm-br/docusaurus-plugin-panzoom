@@ -31,6 +31,45 @@ const {
   ...panZoomConfig
 } = zoom;
 
+/**
+ * Touch on the page: one finger scrolls the page, two fingers pan and zoom the element.
+ * A site can still set `touchAction` itself. The full-screen dialog always uses 'none'.
+ */
+const pageTouchAction = panZoomConfig.touchAction ?? 'pan-x pan-y';
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+
+// Panzoom animates the zoom buttons and reset by default. Skip that when the user asks for less motion.
+const motion = () => ({ animate: !prefersReducedMotion() });
+
+const scrollBehavior = (): ScrollBehavior => (prefersReducedMotion() ? 'auto' : 'smooth');
+
+/**
+ * Copy text to the clipboard. Falls back to a hidden textarea where the Clipboard API is missing,
+ * for example on a site served over plain http.
+ */
+const copyText = async (text: string) => {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const previousFocus = document.activeElement as HTMLElement | null;
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand('copy');
+  textarea.remove();
+  previousFocus?.focus();
+  if (!copied) {
+    throw new Error('copy command was rejected');
+  }
+};
+
 // SVG close icon (Material Symbols "close")
 const SvgClose =
   '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>';
@@ -191,6 +230,14 @@ const openModal = (element: HTMLElement, source: string | null, opener: HTMLElem
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', 'Expanded diagram');
 
+  const description = document.createElement('p');
+  description.id = `panzoom-modal-help-${Date.now()}`;
+  description.className = 'panzoom-sr-only';
+  description.textContent =
+    'Drag or use the arrow keys to pan. Use the wheel, plus or minus to zoom, 0 to reset, Escape to close.';
+  overlay.setAttribute('aria-describedby', description.id);
+  overlay.appendChild(description);
+
   const content = document.createElement('div');
   content.className = 'panzoom-modal-content';
 
@@ -209,7 +256,7 @@ const openModal = (element: HTMLElement, source: string | null, opener: HTMLElem
   const previousOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
 
-  const instance = panzoom(clone, { excludeClass, ...panZoomConfig });
+  const instance = panzoom(clone, { excludeClass, ...panZoomConfig, touchAction: 'none' });
   const state: PanZoomState = { pinned: false };
 
   // No page to scroll behind the dialog, so the plain wheel zooms
@@ -218,7 +265,7 @@ const openModal = (element: HTMLElement, source: string | null, opener: HTMLElem
     clone.addEventListener('dblclick', () => {
       // Double-click selects a word while pinned
       if (!state.pinned) {
-        instance.reset();
+        instance.reset(motion());
       }
     });
   }
@@ -231,9 +278,51 @@ const openModal = (element: HTMLElement, source: string | null, opener: HTMLElem
     opener.focus();
   };
 
+  const PAN_STEP = 50;
+  const shortcuts: Record<string, () => void> = {
+    '+': () => instance.zoomIn(motion()),
+    '=': () => instance.zoomIn(motion()),
+    '-': () => instance.zoomOut(motion()),
+    _: () => instance.zoomOut(motion()),
+    '0': () => instance.reset(motion()),
+    ArrowLeft: () => instance.pan(PAN_STEP, 0, { relative: true, ...motion() }),
+    ArrowRight: () => instance.pan(-PAN_STEP, 0, { relative: true, ...motion() }),
+    ArrowUp: () => instance.pan(0, PAN_STEP, { relative: true, ...motion() }),
+    ArrowDown: () => instance.pan(0, -PAN_STEP, { relative: true, ...motion() }),
+  };
+
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       close();
+      return;
+    }
+
+    // Keep focus inside the dialog
+    if (event.key === 'Tab') {
+      const focusable = [
+        ...overlay.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'),
+      ];
+      if (focusable.length === 0) {
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const inside = overlay.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || !inside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !inside)) {
+        event.preventDefault();
+        first.focus();
+      }
+      return;
+    }
+
+    // Keyboard pan and zoom. Leave Ctrl/Cmd combinations to the browser (page zoom, shortcuts).
+    const action = shortcuts[event.key];
+    if (action && !state.pinned && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      action();
     }
   };
 
@@ -293,6 +382,9 @@ const createToolbar = (
     button.type = 'button';
     button.innerHTML = svg;
     button.title = title;
+    if (title) {
+      button.setAttribute('aria-label', title);
+    }
     button.className = excludeClass;
     button.addEventListener('click', (e) => {
       e.preventDefault();
@@ -302,26 +394,37 @@ const createToolbar = (
     return button;
   };
 
+  // Announces copy results to screen readers. Lives in the toolbar so it also works inside the dialog.
+  const status = document.createElement('span');
+  status.className = 'panzoom-sr-only';
+  status.setAttribute('role', 'status');
+  const announce = (message: string) => {
+    status.textContent = message;
+    setTimeout(() => {
+      status.textContent = '';
+    }, 1500);
+  };
+
   // Create and append all buttons
 
   const zoomButtons = [
     // Zoom in
     createButton(SvgZoomIn, 'Zoom in', () => {
-      instance.zoomIn();
+      instance.zoomIn(motion());
     }),
     // Zoom out
     createButton(SvgZoomOut, 'Zoom out', () => {
       if (!restrictZoomOutBeyondOrigin) {
-        instance.zoomOut();
+        instance.zoomOut(motion());
         return;
       }
       if (instance.getScale() > 1) {
-        instance.zoomOut();
+        instance.zoomOut(motion());
       }
     }),
     // Reset zoom
     createButton(SvgZoomReset, 'Reset zoom', () => {
-      instance.reset();
+      instance.reset(motion());
     }),
   ];
 
@@ -330,6 +433,8 @@ const createToolbar = (
     setPinned(!state.pinned);
     updatePinState();
   });
+  // aria-pressed tells assistive technology whether it is on, so the name stays the same
+  pinButton.setAttribute('aria-label', 'Pin view to select text');
 
   const updatePinState = () => {
     const { pinned } = state;
@@ -347,19 +452,21 @@ const createToolbar = (
 
   // Copy the diagram source
   if (source) {
+    const showResult = (title: string, svg: string) => {
+      copyButton.innerHTML = svg;
+      copyButton.title = title;
+      announce(title);
+      setTimeout(() => {
+        copyButton.innerHTML = SvgCopy;
+        copyButton.title = 'Copy source';
+      }, 1500);
+    };
     const copyButton = createButton(SvgCopy, 'Copy source', () => {
-      navigator.clipboard
-        .writeText(source)
-        .then(() => {
-          copyButton.innerHTML = SvgCheck;
-          copyButton.title = 'Copied';
-          setTimeout(() => {
-            copyButton.innerHTML = SvgCopy;
-            copyButton.title = 'Copy source';
-          }, 1500);
-        })
+      copyText(source)
+        .then(() => showResult('Source copied', SvgCheck))
         .catch((error: unknown) => {
           console.warn('[docusaurus-plugin-panzoom] copy failed:', error);
+          showResult('Copy failed', SvgCopy);
         });
     });
     copyButton.setAttribute('aria-label', 'Copy diagram source');
@@ -386,8 +493,11 @@ const createToolbar = (
   // Expand / collapse toggle button — swaps icon and title between states
   if (expandToggle) {
     const expandBtn = document.createElement('button');
+    expandBtn.type = 'button';
     expandBtn.innerHTML = SvgZoomExpand;
     expandBtn.title = 'Expand';
+    expandBtn.setAttribute('aria-label', 'Expand');
+    expandBtn.setAttribute('aria-expanded', 'false');
     expandBtn.className = excludeClass;
 
     // Register a reset callback so Escape key (and any programmatic close)
@@ -395,6 +505,8 @@ const createToolbar = (
     expandToggle.onClose = () => {
       expandBtn.innerHTML = SvgZoomExpand;
       expandBtn.title = 'Expand';
+      expandBtn.setAttribute('aria-label', 'Expand');
+      expandBtn.setAttribute('aria-expanded', 'false');
     };
 
     expandBtn.addEventListener('click', (e) => {
@@ -407,12 +519,15 @@ const createToolbar = (
         expandToggle.open();
         expandBtn.innerHTML = SvgClose;
         expandBtn.title = 'Collapse';
+        expandBtn.setAttribute('aria-label', 'Collapse');
+        expandBtn.setAttribute('aria-expanded', 'true');
       }
     });
     extraButtons.push(expandBtn);
   }
 
   [...zoomButtons, pinButton, ...extraButtons].forEach((button) => toolbar.appendChild(button));
+  toolbar.appendChild(status);
   container.appendChild(toolbar);
   return toolbar;
 };
@@ -509,9 +624,10 @@ const createExpandToggle = (container: HTMLElement): ExpandToggle => {
     });
 
     container.classList.add('panzoom-expand-active');
+    document.addEventListener('keydown', handleEscape);
 
     // Scroll to the top of the page so the expanded diagram is centered in view
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
   };
 
   const close = () => {
@@ -535,20 +651,21 @@ const createExpandToggle = (container: HTMLElement): ExpandToggle => {
     });
 
     container.classList.remove('panzoom-expand-active');
+    document.removeEventListener('keydown', handleEscape);
 
     // Scroll the exited element back into view
-    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    container.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
 
     // Notify caller (e.g. toolbar button) so it can reset its icon/title
     result.onClose?.();
   };
 
-  // Close on Escape
-  document.addEventListener('keydown', (e) => {
+  // Close on Escape. Listening only while open means nothing is left behind after a route change.
+  function handleEscape(e: KeyboardEvent) {
     if (e.key === 'Escape' && container.classList.contains('panzoom-expand-active')) {
       close();
     }
-  });
+  }
 
   const result: ExpandToggle = { open, close };
   return result;
@@ -597,6 +714,43 @@ const showScrollHint = (container: HTMLElement) => {
 };
 
 /**
+ * With a touch-action that lets the page scroll, the browser takes a one-finger swipe as a page
+ * scroll, but panzoom still sees the first few pointer moves and nudges the element before the
+ * browser cancels them. Turn panning off while exactly one finger is down, so the element stays put
+ * while the page scrolls. Two fingers pan and pinch-zoom as usual. Mouse and pen are not affected.
+ *
+ * @param container The container that receives the pointer events
+ * @param instance The panzoom instance to control
+ * @param touchAction The touch-action used for the instance
+ */
+const holdPanForSingleTouch = (container: HTMLElement, instance: PanzoomObject, touchAction: string) => {
+  if (touchAction === 'none') {
+    return;
+  }
+  const touches = new Set<number>();
+  const update = () => instance.setOptions({ disablePan: touches.size === 1 });
+  // Capture phase: runs before the panzoom handlers on the element inside the container
+  container.addEventListener(
+    'pointerdown',
+    (event) => {
+      if (event.pointerType === 'touch') {
+        touches.add(event.pointerId);
+        update();
+      }
+    },
+    { capture: true },
+  );
+  const release = (event: PointerEvent) => {
+    if (touches.delete(event.pointerId)) {
+      update();
+    }
+  };
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => {
+    container.addEventListener(type, release as EventListener, { capture: true });
+  });
+};
+
+/**
  * Attach event listeners to the element where panzoom is applied.
  * The listeners to add are based on the configuration options provided.
  *
@@ -642,7 +796,7 @@ const addEventListeners = (element: HTMLElement, instance: PanzoomObject, state:
       if (state.pinned) {
         return;
       }
-      instance.reset();
+      instance.reset(motion());
     });
   }
 };
@@ -678,10 +832,11 @@ const zoomElements = (selectors: string[]) => {
       htmlElement.style.position = 'relative';
       container = htmlElement;
     }
-    const instance = panzoom(element as HTMLElement, { excludeClass, ...panZoomConfig });
+    const instance = panzoom(element as HTMLElement, { excludeClass, ...panZoomConfig, touchAction: pageTouchAction });
     const state: PanZoomState = { pinned: false };
 
     addEventListeners(container, instance, state);
+    holdPanForSingleTouch(container, instance, pageTouchAction);
 
     // Add toolbar if enabled
     if (enabled) {
